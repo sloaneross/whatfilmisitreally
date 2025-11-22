@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Process {
+  C_41
+  E_6
+  ECN_2
+  B_W
+}
+
+model Brand {
+  id        BigInt  @id @default(autoincrement())
+  name      String? @db.Text
+  location  String? @db.Text
+  does_coat Boolean?
+  films     Film[]
+}
+
+model Film {
+  id          BigInt   @id @default(autoincrement())
+  name        String?  @db.Text
+  brandId     BigInt?  @map("brand")
+  brand       Brand?   @relation(fields: [brandId], references: [id])
+  ISO         Int?
+  dev_process Process?
+  is_available Boolean?
+  formats     String[] @db.Text
+  image_url   String?  @db.Text
+  // Parent-child relationships
+  parentRelations FilmToParent[] @relation("ParentFilm")
+  childRelations  FilmToParent[] @relation("ChildFilm")
+}
+
+model FilmToParent {
+  parentId BigInt @map("parent") @db.BigInt
+  childId  BigInt @map("child") @db.BigInt
+  parent   Film   @relation("ParentFilm", fields: [parentId], references: [id])
+  child    Film   @relation("ChildFilm", fields: [childId], references: [id])
+
+  @@id([parentId, childId])
+  @@map("film_to_parent")
+}
